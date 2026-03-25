@@ -1,6 +1,30 @@
 # Gwen Absensi
 
-Sistem absensi QR Code berbasis Next.js (App Router) dengan Prisma dan dashboard ringkas.
+[![CI](https://github.com/Yudbay1809/qr-absensi/actions/workflows/ci.yml/badge.svg)](https://github.com/Yudbay1809/qr-absensi/actions/workflows/ci.yml)
+
+Sistem absensi QR Code berbasis Next.js (App Router), dirancang untuk alur admin dan karyawan yang cepat, rapi, dan aman.
+
+## Fitur Utama
+
+- Generate QR sesi absensi (admin)
+- Scan QR untuk absensi (karyawan)
+- Dashboard ringkas + export CSV/Excel
+- Riwayat absensi dengan filter tanggal/status
+
+## Stack
+
+- Next.js (App Router)
+- Prisma (ORM)
+- SQLite (lokal) / PostgreSQL (produksi)
+- Tailwind CSS
+- html5-qrcode
+
+## Struktur Proyek
+
+- `app/` UI dan route handler
+- `prisma/` schema + seed
+- `lib/` helper (auth, prisma, session)
+- `components/` reusable UI
 
 ## Setup Lokal
 
@@ -44,13 +68,6 @@ npm run dev
 
 - Admin: `admin@gwenabsensi.com` / `admin123`
 - Karyawan: `karyawan@gwenabsensi.com` / `karyawan123`
-
-## Fitur Utama
-
-- Generate QR sesi absensi (admin)
-- Scan QR untuk absensi (karyawan)
-- Dashboard ringkas + export CSV/Excel
-- Riwayat absensi dengan filter tanggal/status
 
 ## Catatan
 
