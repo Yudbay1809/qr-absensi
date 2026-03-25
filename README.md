@@ -1,36 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Gwen Absensi
 
-## Getting Started
+Sistem absensi QR Code berbasis Next.js (App Router) dengan Prisma dan dashboard ringkas.
 
-First, run the development server:
+## Setup Lokal
+
+1. Install dependencies:
+
+```bash
+npm install
+```
+
+2. Siapkan env:
+
+```bash
+copy .env.example .env
+```
+
+Jika memakai Windows, pastikan `DATABASE_URL` menunjuk ke path absolut, contoh:
+
+```
+DATABASE_URL="file:D:/absensi-qrcode/prisma/dev.db"
+```
+
+3. Inisialisasi database lokal (SQLite):
+
+```bash
+npm run db:init
+```
+
+4. Seed data demo:
+
+```bash
+npm run seed
+```
+
+5. Jalankan server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Akun Demo
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- Admin: `admin@gwenabsensi.com` / `admin123`
+- Karyawan: `karyawan@gwenabsensi.com` / `karyawan123`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Fitur Utama
 
-## Learn More
+- Generate QR sesi absensi (admin)
+- Scan QR untuk absensi (karyawan)
+- Dashboard ringkas + export CSV/Excel
+- Riwayat absensi dengan filter tanggal/status
 
-To learn more about Next.js, take a look at the following resources:
+## Catatan
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Default database menggunakan SQLite untuk pengembangan lokal.
+- Ubah `DATABASE_URL` di `.env` jika ingin memakai PostgreSQL/MySQL.
+- Jika `prisma migrate` mengalami error di mesin Anda, gunakan `npm run db:init` sebagai init SQL lokal.
