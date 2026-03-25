@@ -20,9 +20,13 @@ enum UserRole {
 model User {
   id           Int          @id @default(autoincrement())
   name         String
+  username     String       @unique
   email        String       @unique
   passwordHash String
   role         UserRole     @default(EMPLOYEE)
+  startDate    DateTime?
+  position     String?
+  gender       String?
   createdAt    DateTime     @default(now())
   attendance   Attendance[]
 }
@@ -48,4 +52,26 @@ model Attendance {
 
   user      User      @relation(fields: [userId], references: [id])
   qrSession QRSession? @relation(fields: [qrSessionId], references: [id])
+}
+
+model Shift {
+  id         Int      @id @default(autoincrement())
+  name       String
+  workStart  String
+  breakStart String
+  breakEnd   String
+  workEnd    String
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  settings Settings[]
+}
+
+model Settings {
+  id             Int      @id @default(autoincrement())
+  defaultShiftId Int?
+  updatedAt      DateTime @updatedAt
+
+  defaultShift Shift? @relation(fields: [defaultShiftId], references: [id])
 }

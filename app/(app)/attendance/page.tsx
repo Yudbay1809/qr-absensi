@@ -27,6 +27,11 @@ export default async function AttendancePage({
   const { from, to } = getDateRange(params);
   const statusFilter =
     params.status && params.status !== "all" ? params.status : undefined;
+  const queryString = new URLSearchParams({
+    ...(params.from ? { from: params.from } : {}),
+    ...(params.to ? { to: params.to } : {}),
+    ...(params.status ? { status: params.status } : {}),
+  }).toString();
 
   const attendance = await prisma.attendance.findMany({
     where: {
@@ -53,13 +58,13 @@ export default async function AttendancePage({
         </div>
         <div className="flex flex-wrap gap-3">
           <Link
-            href="/api/attendance/export"
+            href={`/api/attendance/export${queryString ? `?${queryString}` : ""}`}
             className="inline-flex items-center justify-center rounded-full border border-brand-200 bg-white/80 px-4 py-2 text-sm font-semibold text-brand-900 shadow-sm transition hover:border-brand-300 hover:bg-white"
           >
             Export CSV
           </Link>
           <Link
-            href="/api/attendance/export-xlsx"
+            href={`/api/attendance/export-xlsx${queryString ? `?${queryString}` : ""}`}
             className="inline-flex items-center justify-center rounded-full bg-brand-500 px-4 py-2 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(21,184,121,0.35)] transition hover:bg-brand-600"
           >
             Export Excel

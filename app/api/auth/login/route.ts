@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { createSessionToken, verifyPassword } from "@/lib/auth";
 
 const loginSchema = z.object({
-  email: z.string().email(),
+  username: z.string().min(2),
   password: z.string().min(6),
 });
 
@@ -16,17 +16,19 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Data login tidak valid." }, { status: 400 });
   }
 
-  const user = await prisma.user.findUnique({
-    where: { email: parsed.data.email },
+  const user = await prisma.user.findFirst({
+    where: {
+      OR: [{ username: parsed.data.username }, { email: parsed.data.username }],
+    },
   });
 
   if (!user) {
-    return NextResponse.json({ error: "Email atau password salah." }, { status: 401 });
+    return NextResponse.json({ error: "Username atau password salah." }, { status: 401 });
   }
 
   const ok = await verifyPassword(parsed.data.password, user.passwordHash);
   if (!ok) {
-    return NextResponse.json({ error: "Email atau password salah." }, { status: 401 });
+    return NextResponse.json({ error: "Username atau password salah." }, { status: 401 });
   }
 
   const token = await createSessionToken({

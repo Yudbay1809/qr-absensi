@@ -21,6 +21,10 @@ const dbPath = path.isAbsolute(rawPath)
   ? rawPath
   : path.join(process.cwd(), rawPath);
 
+if (fs.existsSync(dbPath)) {
+  fs.unlinkSync(dbPath);
+}
+
 const db = new Database(dbPath);
 
 db.exec(sql);

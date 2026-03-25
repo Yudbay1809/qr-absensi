@@ -7,6 +7,9 @@ const navItems = [
   { label: "Riwayat", href: "/attendance" },
   { label: "Scan", href: "/scan" },
   { label: "Admin QR", href: "/admin/qr", adminOnly: true },
+  { label: "Karyawan", href: "/admin/employees", adminOnly: true },
+  { label: "Jam Kerja", href: "/admin/settings", adminOnly: true },
+  { label: "Shift", href: "/admin/shifts", adminOnly: true },
 ];
 
 export default async function AppLayout({

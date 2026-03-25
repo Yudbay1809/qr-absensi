@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
 import { rateLimit } from "@/lib/rate-limit";
+import { getDefaultShift } from "@/lib/shift";
 
 const payloadSchema = z.object({
   token: z.string().min(8),
@@ -48,11 +49,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "QR sudah kedaluwarsa." }, { status: 410 });
   }
 
-  const lateAfterHour = 9;
   const scannedAt = new Date();
-  const lateThreshold = new Date(scannedAt);
-  lateThreshold.setHours(lateAfterHour, 0, 0, 0);
-  const status = scannedAt > lateThreshold ? "late" : "on_time";
+  const shift = await getDefaultShift();
+  let status = "on_time";
+  if (shift) {
+    const [lateHour, lateMinute] = shift.workStart.split(":").map(Number);
+    const lateThreshold = new Date(scannedAt);
+    lateThreshold.setHours(lateHour, lateMinute ?? 0, 0, 0);
+    status = scannedAt > lateThreshold ? "late" : "on_time";
+  }
 
   const attendance = await prisma.attendance.create({
     data: {

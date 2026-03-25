@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -20,7 +20,7 @@ export default function LoginPage() {
     const res = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ username, password }),
     });
 
     setLoading(false);
@@ -50,13 +50,13 @@ export default function LoginPage() {
         </div>
         <form onSubmit={submit} className="grid gap-4">
           <label className="grid gap-2 text-sm font-medium text-brand-900">
-            Email
+            Username
             <input
-              type="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
+              type="text"
+              value={username}
+              onChange={(event) => setUsername(event.target.value)}
               className="rounded-2xl border border-brand-100 bg-white px-4 py-3 text-sm text-brand-900 outline-none transition focus:border-brand-400"
-              placeholder="nama@perusahaan.com"
+              placeholder="admin atau karyawan"
               required
             />
           </label>

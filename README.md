@@ -66,8 +66,8 @@ npm run dev
 
 ## Akun Demo
 
-- Admin: `admin@gwenabsensi.com` / `admin123`
-- Karyawan: `karyawan@gwenabsensi.com` / `karyawan123`
+- Admin: `admin` / `admin123`
+- Karyawan: `karyawan` / `karyawan123`
 
 ## Catatan
 
