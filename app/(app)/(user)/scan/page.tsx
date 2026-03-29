@@ -1,7 +1,7 @@
 "use client";
 
 import { Html5QrcodeScanner } from "html5-qrcode";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 function extractToken(text: string) {
   try {
@@ -17,8 +17,22 @@ function extractToken(text: string) {
 export default function ScanPage() {
   const [status, setStatus] = useState("Siapkan kamera Anda.");
   const [error, setError] = useState<string | null>(null);
+  const [isReady, setIsReady] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
+  const scannerRef = useRef<Html5QrcodeScanner | null>(null);
 
   useEffect(() => {
+    return () => {
+      if (scannerRef.current) {
+        scannerRef.current.clear().catch(() => undefined);
+      }
+    };
+  }, []);
+
+  const startScan = async () => {
+    setError(null);
+    setStatus("Menyiapkan kamera...");
+
     const scanner = new Html5QrcodeScanner(
       "reader",
       {
@@ -27,6 +41,8 @@ export default function ScanPage() {
       },
       false
     );
+
+    scannerRef.current = scanner;
 
     scanner.render(
       async (decodedText) => {
@@ -48,17 +64,28 @@ export default function ScanPage() {
         }
 
         setStatus("Absensi berhasil disimpan.");
-        scanner.clear();
+        setIsScanning(false);
+        scanner.clear().catch(() => undefined);
       },
       () => {
         // ignore scan errors to avoid noisy UI
       }
     );
 
-    return () => {
-      scanner.clear().catch(() => undefined);
-    };
-  }, []);
+    setIsReady(true);
+    setIsScanning(true);
+    setStatus("Kamera aktif. Arahkan ke QR.");
+
+    try {
+      await navigator.mediaDevices.getUserMedia({ video: true });
+    } catch {
+      setError(
+        "Akses kamera ditolak. Aktifkan izin kamera di browser lalu coba lagi."
+      );
+      setStatus("Izin kamera dibutuhkan untuk scan.");
+      setIsScanning(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,#e9fff7,transparent_55%),linear-gradient(180deg,#f6fffd_0%,#e6fdf4_35%,#f9fffd_100%)] px-6 py-12">
@@ -76,6 +103,19 @@ export default function ScanPage() {
       </header>
 
         <div className="rounded-3xl border border-brand-100 bg-white/90 p-6 shadow-[0_20px_50px_rgba(10,77,56,0.12)]">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm font-medium text-brand-900">
+              {isScanning ? "Kamera aktif" : "Kamera belum aktif"}
+            </p>
+            <button
+              type="button"
+              onClick={startScan}
+              disabled={isScanning}
+              className="inline-flex items-center justify-center rounded-full bg-brand-500 px-4 py-2 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(21,184,121,0.35)] transition hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              {isReady ? "Scan Ulang" : "Mulai Scan"}
+            </button>
+          </div>
           <div id="reader" className="rounded-2xl" />
           <div
             className="mt-4 rounded-2xl border border-brand-100 bg-brand-50 px-4 py-3 text-sm text-brand-900"
