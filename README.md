@@ -1,11 +1,16 @@
 # Gwen Absensi
 
 [![CI](https://github.com/Yudbay1809/qr-absensi/actions/workflows/ci.yml/badge.svg)](https://github.com/Yudbay1809/qr-absensi/actions/workflows/ci.yml)
+![Vercel](https://vercelbadge.vercel.app/api/Yudbay1809/qr-absensi)
+![Next.js](https://img.shields.io/badge/Next.js-16.2.1-black)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)
+![License](https://img.shields.io/badge/License-Proprietary-lightgrey)
 
 Sistem absensi QR Code berbasis Next.js (App Router), dirancang untuk alur admin dan karyawan yang cepat, rapi, dan aman.
 
 ## Demo
 
+- Production: https://gwenabsensi.vercel.app
 - Preview: https://absensi-qrcode-3n7jvi5dj-yudbay1809s-projects.vercel.app
 
 ## Screenshot
@@ -89,3 +94,20 @@ npm run dev
 - Default database menggunakan SQLite untuk pengembangan lokal.
 - Ubah `DATABASE_URL` di `.env` jika ingin memakai PostgreSQL/MySQL.
 - Jika `prisma migrate` mengalami error di mesin Anda, gunakan `npm run db:init` sebagai init SQL lokal.
+
+## Roadmap
+
+- Role & permission granular (multi-tenant / multi-lokasi).
+- Jadwal kerja fleksibel per karyawan + kalender libur.
+- Validasi lokasi (GPS / geofence) & device binding.
+- Export laporan yang bisa dikustomisasi (template payroll).
+- Dashboard analitik lanjutan + notifikasi otomatis.
+
+## Changelog
+
+### v1.0.0
+
+- Struktur folder dipisah per domain (landing, auth, admin, user).
+- Komponen reusable dan domain-specific dipisah (shared/admin/user/public).
+- QR session auto-refresh + mode locked.
+- Export CSV/Excel dan dashboard ringkas.
