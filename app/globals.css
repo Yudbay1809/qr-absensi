@@ -40,6 +40,10 @@ body {
   font-family: var(--font-body), "Plus Jakarta Sans", system-ui, sans-serif;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 .font-heading {
   font-family: var(--font-heading), "Sora", system-ui, sans-serif;
 }

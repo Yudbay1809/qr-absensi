@@ -1,10 +1,12 @@
 import Link from "next/link";
-import { getSessionUser } from "@/lib/session";
-import LogoutButton from "@/components/logout-button";
+import { getSessionUser } from "@/lib/user/session";
+import LogoutButton from "@/components/user/logout-button";
 
 const navItems = [
   { label: "Dashboard", href: "/dashboard" },
   { label: "Riwayat", href: "/attendance" },
+  { label: "Absensi Saya", href: "/attendance/me" },
+  { label: "Profil", href: "/profile" },
   { label: "Scan", href: "/scan" },
   { label: "Admin QR", href: "/admin/qr", adminOnly: true },
   { label: "Karyawan", href: "/admin/employees", adminOnly: true },
@@ -63,3 +65,4 @@ export default async function AppLayout({
     </div>
   );
 }
+

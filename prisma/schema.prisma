@@ -38,13 +38,13 @@ model QRSession {
   expiresAt DateTime
   usedAt    DateTime?
   isUsed    Boolean      @default(false)
-  attendance Attendance?
+  attendances Attendance[]
 }
 
 model Attendance {
   id          Int        @id @default(autoincrement())
   userId      Int
-  qrSessionId Int?       @unique
+  qrSessionId Int?
   scannedAt   DateTime   @default(now())
   status      String     @default("on_time")
   ip          String?

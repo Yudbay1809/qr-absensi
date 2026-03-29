@@ -36,7 +36,6 @@ CREATE TABLE IF NOT EXISTS "Attendance" (
 CREATE UNIQUE INDEX IF NOT EXISTS "User_email_key" ON "User"("email");
 CREATE UNIQUE INDEX IF NOT EXISTS "User_username_key" ON "User"("username");
 CREATE UNIQUE INDEX IF NOT EXISTS "QRSession_token_key" ON "QRSession"("token");
-CREATE UNIQUE INDEX IF NOT EXISTS "Attendance_qrSessionId_key" ON "Attendance"("qrSessionId");
 
 CREATE TABLE IF NOT EXISTS "Shift" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
