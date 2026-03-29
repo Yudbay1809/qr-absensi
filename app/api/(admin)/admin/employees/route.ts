@@ -3,8 +3,6 @@ import { z } from "zod";
 import { prisma } from "@/lib/public/prisma";
 import { getSessionUser } from "@/lib/user/session";
 import { hashPassword } from "@/lib/user/auth";
-import crypto from "crypto";
-
 const createSchema = z.object({
   name: z.string().min(2),
   username: z.string().min(2),

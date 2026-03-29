@@ -1,6 +1,8 @@
 @import "tailwindcss";
 
 :root {
+  --font-body: "Plus Jakarta Sans";
+  --font-heading: "Sora";
   --background: #f6fffd;
   --foreground: #0b1f1a;
   --brand-50: #e9fff7;

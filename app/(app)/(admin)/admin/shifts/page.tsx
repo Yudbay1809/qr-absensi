@@ -31,7 +31,10 @@ export default function ShiftsPage() {
   };
 
   useEffect(() => {
-    load();
+    const id = setTimeout(() => {
+      void load();
+    }, 0);
+    return () => clearTimeout(id);
   }, []);
 
   const onCreate = async (event: React.FormEvent) => {

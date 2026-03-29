@@ -76,8 +76,11 @@ export default function EmployeesPage() {
   };
 
   useEffect(() => {
-    loadEmployees();
-    loadShifts();
+    const id = setTimeout(() => {
+      void loadEmployees();
+      void loadShifts();
+    }, 0);
+    return () => clearTimeout(id);
   }, []);
 
   const onCreate = async (event: React.FormEvent) => {
