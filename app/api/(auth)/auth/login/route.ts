@@ -38,7 +38,7 @@ export async function POST(req: Request) {
     name: user.name,
   });
 
-  const response = NextResponse.json({ success: true });
+  const response = NextResponse.json({ success: true, role: user.role });
   response.cookies.set({
     name: "gwen_session",
     value: token,

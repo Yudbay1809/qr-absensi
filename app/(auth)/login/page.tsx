@@ -20,6 +20,7 @@ export default function LoginPage() {
     const res = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "include",
       body: JSON.stringify({ username, password }),
     });
 
@@ -31,7 +32,9 @@ export default function LoginPage() {
       return;
     }
 
-    router.push("/dashboard");
+    const data = await res.json().catch(() => null);
+    const target = data?.role === "ADMIN" ? "/admin/qr" : "/dashboard";
+    window.location.assign(target);
   };
 
   return (
