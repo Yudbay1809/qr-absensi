@@ -25,6 +25,7 @@ export async function GET(req: Request) {
   const from = parseDate(url.searchParams.get("from"));
   const to = parseDate(url.searchParams.get("to"), true);
   const status = url.searchParams.get("status");
+  const type = url.searchParams.get("type");
 
   const where: Record<string, unknown> = {};
   if (from && to) {
@@ -33,20 +34,37 @@ export async function GET(req: Request) {
   if (status && status !== "all") {
     where.status = status;
   }
+  if (type && type !== "all") {
+    where.type = type;
+  }
 
   const attendance = await prisma.attendance.findMany({
     where,
     orderBy: { scannedAt: "desc" },
-    include: { user: true },
+    include: { user: true, shift: true },
   });
 
-  const header = ["id", "name", "email", "scannedAt", "status", "ip", "userAgent"];
+  const header = [
+    "id",
+    "name",
+    "email",
+    "scannedAt",
+    "type",
+    "status",
+    "shift",
+    "overtimeMinutes",
+    "ip",
+    "userAgent",
+  ];
   const rows = attendance.map((item) => [
     String(item.id),
     item.user.name,
     item.user.email,
     item.scannedAt.toISOString(),
+    item.type ?? "",
     item.status,
+    item.shift?.name ?? "",
+    item.overtimeMinutes ? String(item.overtimeMinutes) : "",
     item.ip ?? "",
     item.userAgent ?? "",
   ]);

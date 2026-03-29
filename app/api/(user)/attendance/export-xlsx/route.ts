@@ -19,6 +19,7 @@ export async function GET(req: Request) {
   const from = parseDate(url.searchParams.get("from"));
   const to = parseDate(url.searchParams.get("to"), true);
   const status = url.searchParams.get("status");
+  const type = url.searchParams.get("type");
 
   const where: Record<string, unknown> = {};
   if (from && to) {
@@ -27,11 +28,14 @@ export async function GET(req: Request) {
   if (status && status !== "all") {
     where.status = status;
   }
+  if (type && type !== "all") {
+    where.type = type;
+  }
 
   const attendance = await prisma.attendance.findMany({
     where,
     orderBy: { scannedAt: "desc" },
-    include: { user: true },
+    include: { user: true, shift: true },
   });
 
   const rows = attendance.map((item) => ({
@@ -39,7 +43,10 @@ export async function GET(req: Request) {
     name: item.user.name,
     email: item.user.email,
     scannedAt: item.scannedAt.toISOString(),
+    type: item.type ?? "",
     status: item.status,
+    shift: item.shift?.name ?? "",
+    overtimeMinutes: item.overtimeMinutes ?? "",
     ip: item.ip ?? "",
     userAgent: item.userAgent ?? "",
   }));
@@ -51,6 +58,9 @@ export async function GET(req: Request) {
     { wch: 28 },
     { wch: 24 },
     { wch: 12 },
+    { wch: 12 },
+    { wch: 16 },
+    { wch: 16 },
     { wch: 18 },
     { wch: 40 },
   ];

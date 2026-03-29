@@ -2,15 +2,17 @@ type AttendanceFilterProps = {
   from?: string;
   to?: string;
   status?: string;
+  type?: string;
 };
 
 export default function AttendanceFilter({
   from,
   to,
   status,
+  type,
 }: AttendanceFilterProps) {
   return (
-    <form className="grid gap-3 rounded-3xl border border-brand-100 bg-white/90 p-6 shadow-sm md:grid-cols-4">
+    <form className="grid gap-3 rounded-3xl border border-brand-100 bg-white/90 p-6 shadow-sm md:grid-cols-5">
       <label className="grid gap-2 text-sm font-medium text-brand-900">
         Dari
         <input
@@ -30,6 +32,18 @@ export default function AttendanceFilter({
         />
       </label>
       <label className="grid gap-2 text-sm font-medium text-brand-900">
+        Jenis
+        <select
+          name="type"
+          defaultValue={type ?? "all"}
+          className="rounded-2xl border border-brand-100 bg-white px-3 py-2 text-sm"
+        >
+          <option value="all">Semua</option>
+          <option value="check_in">Masuk</option>
+          <option value="check_out">Pulang</option>
+        </select>
+      </label>
+      <label className="grid gap-2 text-sm font-medium text-brand-900">
         Status
         <select
           name="status"
@@ -39,6 +53,7 @@ export default function AttendanceFilter({
           <option value="all">Semua</option>
           <option value="on_time">Tepat waktu</option>
           <option value="late">Terlambat</option>
+          <option value="checked_out">Pulang</option>
         </select>
       </label>
       <button

@@ -25,13 +25,16 @@ export default async function ProfilePage() {
   });
 
   const { start, end } = getTodayRange();
-  const todayAttendance = await prisma.attendance.findFirst({
+  const todayAttendance = await prisma.attendance.findMany({
     where: {
       userId: session.userId,
       scannedAt: { gte: start, lte: end },
     },
-    orderBy: { scannedAt: "desc" },
+    orderBy: { scannedAt: "asc" },
   });
+
+  const hasCheckIn = todayAttendance.some((item) => item.type === "check_in");
+  const hasCheckOut = todayAttendance.some((item) => item.type === "check_out");
 
   return (
     <div className="flex flex-col gap-6">
@@ -105,8 +108,10 @@ export default async function ProfilePage() {
           Status hari ini
         </p>
         <p className="font-semibold text-brand-950">
-          {todayAttendance
-            ? `Sudah absen (${todayAttendance.status})`
+          {hasCheckIn && hasCheckOut
+            ? "Sudah absen masuk dan pulang"
+            : hasCheckIn
+            ? "Sudah absen masuk"
             : "Belum absen"}
         </p>
       </div>

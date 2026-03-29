@@ -52,6 +52,11 @@ async function main() {
       defaultShiftId: defaultShift.id,
     },
   });
+
+  await prisma.user.updateMany({
+    where: { role: "EMPLOYEE", shiftId: null },
+    data: { shiftId: defaultShift.id },
+  });
 }
 
 main()

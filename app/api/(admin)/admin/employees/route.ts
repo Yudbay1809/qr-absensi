@@ -10,6 +10,7 @@ const createSchema = z.object({
   username: z.string().min(2),
   email: z.string().email(),
   password: z.string().min(6),
+  shiftId: z.coerce.number().int().positive().optional(),
   startDate: z.string().optional(),
   position: z.string().optional(),
   gender: z.string().optional(),
@@ -32,6 +33,7 @@ export async function GET() {
       startDate: true,
       position: true,
       gender: true,
+      shift: { select: { id: true, name: true } },
     },
   });
 
@@ -67,6 +69,7 @@ export async function POST(req: Request) {
       email: parsed.data.email,
       passwordHash,
       role: "EMPLOYEE",
+      shiftId: parsed.data.shiftId ?? null,
       startDate: parsed.data.startDate
         ? new Date(parsed.data.startDate)
         : undefined,
@@ -81,6 +84,7 @@ export async function POST(req: Request) {
       startDate: true,
       position: true,
       gender: true,
+      shift: { select: { id: true, name: true } },
     },
   });
 

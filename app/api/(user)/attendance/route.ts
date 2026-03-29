@@ -9,6 +9,25 @@ const payloadSchema = z.object({
   token: z.string().min(8),
 });
 
+function getJakartaDate(base: Date = new Date()) {
+  return new Date(base.toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
+}
+
+function getJakartaDayRange(base: Date) {
+  const start = new Date(base);
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(base);
+  end.setHours(23, 59, 59, 999);
+  return { start, end };
+}
+
+function buildJakartaTime(base: Date, time: string) {
+  const [hour, minute] = time.split(":").map(Number);
+  const date = new Date(base);
+  date.setHours(hour, minute || 0, 0, 0);
+  return date;
+}
+
 export async function POST(req: Request) {
   const user = await getSessionUser();
   if (!user) {
@@ -33,11 +52,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Token tidak valid." }, { status: 400 });
   }
 
-  const [qrSession, shift] = await Promise.all([
+  const [qrSession, dbUser] = await Promise.all([
     prisma.qRSession.findUnique({
       where: { token: parsed.data.token },
     }),
-    getDefaultShift(),
+    prisma.user.findUnique({
+      where: { id: user.userId },
+      include: { shift: true },
+    }),
   ]);
 
   if (!qrSession) {
@@ -49,19 +71,58 @@ export async function POST(req: Request) {
   }
 
   const scannedAt = new Date();
+  const jakartaNow = getJakartaDate(scannedAt);
+  const { start, end } = getJakartaDayRange(jakartaNow);
+
+  const todayAttendance = await prisma.attendance.findMany({
+    where: {
+      userId: user.userId,
+      scannedAt: { gte: start, lte: end },
+    },
+    orderBy: { scannedAt: "asc" },
+  });
+
+  const hasCheckIn = todayAttendance.some((item) => item.type === "check_in");
+  const hasCheckOut = todayAttendance.some((item) => item.type === "check_out");
+
+  if (hasCheckIn && hasCheckOut) {
+    return NextResponse.json(
+      { error: "Anda sudah absen masuk dan pulang hari ini." },
+      { status: 409 }
+    );
+  }
+
+  const shift = dbUser?.shift ?? (await getDefaultShift());
+  const scanType = hasCheckIn ? "check_out" : "check_in";
   let status = "on_time";
+  let overtimeMinutes: number | null = null;
+
   if (shift) {
-    const [lateHour, lateMinute] = shift.workStart.split(":").map(Number);
-    const lateThreshold = new Date(scannedAt);
-    lateThreshold.setHours(lateHour, lateMinute ?? 0, 0, 0);
-    status = scannedAt > lateThreshold ? "late" : "on_time";
+    const workStart = buildJakartaTime(jakartaNow, shift.workStart);
+    const workEnd = buildJakartaTime(jakartaNow, shift.workEnd);
+
+    if (scanType === "check_in") {
+      status = scannedAt > workStart ? "late" : "on_time";
+    } else {
+      status = "checked_out";
+      const diffMinutes = Math.max(
+        0,
+        Math.round((scannedAt.getTime() - workEnd.getTime()) / 60000)
+      );
+      overtimeMinutes = diffMinutes > 0 ? diffMinutes : null;
+    }
+  } else if (scanType === "check_out") {
+    status = "checked_out";
   }
 
   const attendance = await prisma.attendance.create({
     data: {
       userId: user.userId,
       qrSessionId: qrSession.id,
+      shiftId: shift?.id ?? null,
+      type: scanType,
       status,
+      overtimeMinutes,
       ip,
       userAgent: req.headers.get("user-agent") ?? undefined,
     },
@@ -70,6 +131,6 @@ export async function POST(req: Request) {
   return NextResponse.json({
     success: true,
     attendanceId: attendance.id,
+    type: scanType,
   });
 }
-

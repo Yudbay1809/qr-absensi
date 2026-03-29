@@ -25,11 +25,13 @@ model User {
   email        String       @unique
   passwordHash String
   role         UserRole     @default(EMPLOYEE)
+  shiftId      Int?
   startDate    DateTime?
   position     String?
   gender       String?
   createdAt    DateTime     @default(now())
   attendance   Attendance[]
+  shift        Shift?       @relation(fields: [shiftId], references: [id])
 }
 
 model QRSession {
@@ -47,12 +49,16 @@ model Attendance {
   userId      Int
   qrSessionId Int?
   scannedAt   DateTime   @default(now())
+  type        String     @default("check_in")
   status      String     @default("on_time")
+  overtimeMinutes Int?
+  shiftId     Int?
   ip          String?
   userAgent   String?
 
   user      User      @relation(fields: [userId], references: [id])
   qrSession QRSession? @relation(fields: [qrSessionId], references: [id])
+  shift     Shift?    @relation(fields: [shiftId], references: [id])
 }
 
 model Shift {
@@ -67,6 +73,8 @@ model Shift {
   updatedAt  DateTime @updatedAt
 
   settings Settings[]
+  users    User[]
+  attendances Attendance[]
 }
 
 model Settings {

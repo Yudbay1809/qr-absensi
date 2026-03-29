@@ -23,22 +23,31 @@ function getDateRange(searchParams: { from?: string; to?: string }) {
 export default async function AttendancePage({
   searchParams,
 }: {
-  searchParams: Promise<{ from?: string; to?: string; status?: string }>;
+  searchParams: Promise<{
+    from?: string;
+    to?: string;
+    status?: string;
+    type?: string;
+  }>;
 }) {
   const params = await searchParams;
   const { from, to } = getDateRange(params);
   const statusFilter =
     params.status && params.status !== "all" ? params.status : undefined;
+  const typeFilter =
+    params.type && params.type !== "all" ? params.type : undefined;
   const queryString = new URLSearchParams({
     ...(params.from ? { from: params.from } : {}),
     ...(params.to ? { to: params.to } : {}),
     ...(params.status ? { status: params.status } : {}),
+    ...(params.type ? { type: params.type } : {}),
   }).toString();
 
   const attendance = await prisma.attendance.findMany({
     where: {
       scannedAt: { gte: from, lte: to },
       status: statusFilter,
+      type: typeFilter,
     },
     orderBy: { scannedAt: "desc" },
     include: { user: true },
@@ -78,6 +87,7 @@ export default async function AttendancePage({
         from={params.from}
         to={params.to}
         status={params.status}
+        type={params.type}
       />
 
       <div className="rounded-3xl border border-brand-100 bg-white/90 p-6 shadow-sm">

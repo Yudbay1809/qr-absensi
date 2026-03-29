@@ -14,6 +14,7 @@ type Employee = {
   startDate?: string | null;
   position?: string | null;
   gender?: string | null;
+  shift?: { id: number; name: string } | null;
 };
 
 type EmployeeForm = {
@@ -21,21 +22,29 @@ type EmployeeForm = {
   username: string;
   email: string;
   password: string;
+  shiftId: string;
   startDate: string;
   position: string;
   gender: string;
+};
+
+type ShiftOption = {
+  id: number;
+  name: string;
 };
 
 export default function EmployeesPage() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [shifts, setShifts] = useState<ShiftOption[]>([]);
 
   const [form, setForm] = useState<EmployeeForm>({
     name: "",
     username: "",
     email: "",
     password: "",
+    shiftId: "",
     startDate: "",
     position: "",
     gender: "",
@@ -59,8 +68,16 @@ export default function EmployeesPage() {
     setEmployees(data.employees ?? []);
   };
 
+  const loadShifts = async () => {
+    const res = await fetch("/api/admin/shifts");
+    if (!res.ok) return;
+    const data = await res.json();
+    setShifts(data.shifts ?? []);
+  };
+
   useEffect(() => {
     loadEmployees();
+    loadShifts();
   }, []);
 
   const onCreate = async (event: React.FormEvent) => {
@@ -83,6 +100,7 @@ export default function EmployeesPage() {
       username: "",
       email: "",
       password: "",
+      shiftId: "",
       startDate: "",
       position: "",
       gender: "",
@@ -102,6 +120,7 @@ export default function EmployeesPage() {
         username: editing.username,
         email: editing.email,
         password: editPassword,
+        shiftId: editing.shift?.id ?? "",
         startDate: editing.startDate ?? "",
         position: editing.position ?? "",
         gender: editing.gender ?? "",
@@ -198,6 +217,20 @@ export default function EmployeesPage() {
             }
             required
           />
+          <select
+            className="rounded-2xl border border-brand-100 bg-white px-3 py-2 text-sm"
+            value={form.shiftId}
+            onChange={(event) =>
+              setForm({ ...form, shiftId: event.target.value })
+            }
+          >
+            <option value="">Pilih shift</option>
+            {shifts.map((shift) => (
+              <option key={shift.id} value={shift.id}>
+                {shift.name}
+              </option>
+            ))}
+          </select>
           <input
             className="rounded-2xl border border-brand-100 bg-white px-3 py-2 text-sm"
             placeholder="Tanggal masuk"
@@ -273,6 +306,31 @@ export default function EmployeesPage() {
               value={editPassword}
               onChange={(event) => setEditPassword(event.target.value)}
             />
+            <select
+              className="rounded-2xl border border-brand-100 bg-white px-3 py-2 text-sm"
+              value={editing.shift?.id ?? ""}
+              onChange={(event) =>
+                setEditing({
+                  ...editing,
+                  shift: event.target.value
+                    ? {
+                        id: Number(event.target.value),
+                        name:
+                          shifts.find(
+                            (shift) => shift.id === Number(event.target.value)
+                          )?.name ?? "Shift",
+                      }
+                    : null,
+                })
+              }
+            >
+              <option value="">Pilih shift</option>
+              {shifts.map((shift) => (
+                <option key={shift.id} value={shift.id}>
+                  {shift.name}
+                </option>
+              ))}
+            </select>
             <input
               className="rounded-2xl border border-brand-100 bg-white px-3 py-2 text-sm"
               placeholder="Tanggal masuk"

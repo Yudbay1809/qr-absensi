@@ -6,7 +6,9 @@ type AttendanceUser = {
 type AttendanceItem = {
   id: number;
   scannedAt: Date;
+  type?: string | null;
   status: string;
+  overtimeMinutes?: number | null;
   ip?: string | null;
   userAgent?: string | null;
   user?: AttendanceUser | null;
@@ -54,7 +56,12 @@ export default function AttendanceList({
               <p className="font-medium text-brand-900">
                 {item.scannedAt.toLocaleString("id-ID")}
               </p>
-              <p className="text-xs text-brand-700">{item.status}</p>
+              <p className="text-xs text-brand-700">
+                {item.type === "check_out"
+                  ? "Absen pulang"
+                  : "Absen masuk"}{" "}
+                - {item.status}
+              </p>
             </div>
           )}
 
@@ -63,7 +70,15 @@ export default function AttendanceList({
               <p className="font-medium text-brand-900">
                 {item.scannedAt.toLocaleString("id-ID")}
               </p>
-              <p className="text-xs text-brand-700">{item.status}</p>
+              <p className="text-xs text-brand-700">
+                {item.type === "check_out"
+                  ? "Absen pulang"
+                  : "Absen masuk"}{" "}
+                - {item.status}
+                {item.overtimeMinutes
+                  ? ` - Lembur ${item.overtimeMinutes} menit`
+                  : ""}
+              </p>
             </div>
           )}
 
@@ -76,7 +91,11 @@ export default function AttendanceList({
             </div>
           ) : !showUser ? (
             <span className="rounded-full bg-brand-100 px-3 py-1 text-xs font-semibold text-brand-700">
-              {item.status === "late" ? "Terlambat" : "Tepat waktu"}
+              {item.type === "check_out"
+                ? "Pulang"
+                : item.status === "late"
+                ? "Terlambat"
+                : "Tepat waktu"}
             </span>
           ) : null}
         </div>

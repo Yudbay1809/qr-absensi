@@ -9,6 +9,7 @@ type Employee = {
   startDate?: string | null;
   position?: string | null;
   gender?: string | null;
+  shift?: { id: number; name: string } | null;
 };
 
 type EmployeeRowProps = {
@@ -27,13 +28,16 @@ export default function EmployeeRow({
       <div>
         <p className="font-semibold text-brand-950">{employee.name}</p>
         <p className="text-xs text-brand-700">
-          @{employee.username} · {employee.email}
+          @{employee.username} - {employee.email}
         </p>
         <p className="text-xs text-brand-600">
           {employee.position ? employee.position : "Jabatan belum diisi"}
           {employee.startDate
-            ? ` · Masuk ${new Date(employee.startDate).toLocaleDateString("id-ID")}`
+            ? ` - Masuk ${new Date(employee.startDate).toLocaleDateString("id-ID")}`
             : ""}
+        </p>
+        <p className="text-xs text-brand-600">
+          Shift: {employee.shift?.name ?? "Belum ditentukan"}
         </p>
       </div>
       <div className="flex items-center gap-2">

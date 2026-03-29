@@ -45,12 +45,16 @@ export default async function DashboardPage() {
     prevWeekCount,
   ] = await Promise.all([
     prisma.attendance.count({
-      where: { scannedAt: { gte: start, lte: end } },
+      where: { scannedAt: { gte: start, lte: end }, type: "check_in" },
     }),
     prisma.attendance.count({
-      where: { scannedAt: { gte: start, lte: end }, status: "late" },
+      where: {
+        scannedAt: { gte: start, lte: end },
+        status: "late",
+        type: "check_in",
+      },
     }),
-    prisma.attendance.count(),
+    prisma.attendance.count({ where: { type: "check_in" } }),
     prisma.user.count(),
     prisma.attendance.findMany({
       take: 8,
@@ -58,10 +62,13 @@ export default async function DashboardPage() {
       include: { user: true },
     }),
     prisma.attendance.count({
-      where: { scannedAt: { gte: weekStart, lte: now } },
+      where: { scannedAt: { gte: weekStart, lte: now }, type: "check_in" },
     }),
     prisma.attendance.count({
-      where: { scannedAt: { gte: prevWeekStart, lte: prevWeekEnd } },
+      where: {
+        scannedAt: { gte: prevWeekStart, lte: prevWeekEnd },
+        type: "check_in",
+      },
     }),
   ]);
 
@@ -190,7 +197,15 @@ export default async function DashboardPage() {
                   <p className="font-medium text-brand-900">
                     {item.scannedAt.toLocaleString("id-ID")}
                   </p>
-                  <p className="text-xs text-brand-700">{item.status}</p>
+                  <p className="text-xs text-brand-700">
+                    {item.type === "check_out"
+                      ? "Absen pulang"
+                      : "Absen masuk"}{" "}
+                    - {item.status}
+                    {item.overtimeMinutes
+                      ? ` - Lembur ${item.overtimeMinutes} menit`
+                      : ""}
+                  </p>
                 </div>
               </div>
             ))}
