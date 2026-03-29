@@ -1,15 +1,28 @@
 import { prisma } from "@/lib/public/prisma";
+import type { Shift } from "@prisma/client";
+
+let cachedShift: Shift | null = null;
+let cachedAt = 0;
 
 export async function getDefaultShift() {
+  const now = Date.now();
+  if (cachedShift && now - cachedAt < 60_000) {
+    return cachedShift;
+  }
+
   const settings = await prisma.settings.findFirst({
     include: { defaultShift: true },
   });
 
   if (settings?.defaultShift) {
-    return settings.defaultShift;
+    cachedShift = settings.defaultShift;
+    cachedAt = now;
+    return cachedShift;
   }
 
   const fallback = await prisma.shift.findFirst({ where: { isActive: true } });
+  cachedShift = fallback ?? null;
+  cachedAt = now;
   return fallback;
 }
 

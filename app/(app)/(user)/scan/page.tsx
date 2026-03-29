@@ -1,6 +1,6 @@
 "use client";
 
-import { Html5QrcodeScanner } from "html5-qrcode";
+import { Html5Qrcode } from "html5-qrcode";
 import { useEffect, useRef, useState } from "react";
 
 function extractToken(text: string) {
@@ -17,73 +17,127 @@ function extractToken(text: string) {
 export default function ScanPage() {
   const [status, setStatus] = useState("Siapkan kamera Anda.");
   const [error, setError] = useState<string | null>(null);
+  const [debug, setDebug] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
-  const scannerRef = useRef<Html5QrcodeScanner | null>(null);
+  const scannerRef = useRef<Html5Qrcode | null>(null);
+  const isProcessingRef = useRef(false);
 
   useEffect(() => {
+    scannerRef.current = new Html5Qrcode("reader");
     return () => {
       if (scannerRef.current) {
-        scannerRef.current.clear().catch(() => undefined);
+        scannerRef.current.stop().catch(() => undefined);
+        scannerRef.current.clear();
       }
     };
   }, []);
 
   const startScan = async () => {
     setError(null);
+    setDebug(null);
     setStatus("Menyiapkan kamera...");
 
-    const scanner = new Html5QrcodeScanner(
-      "reader",
-      {
-        fps: 10,
-        qrbox: 240,
-      },
-      false
-    );
+    if (!scannerRef.current) {
+      scannerRef.current = new Html5Qrcode("reader");
+    }
 
-    scannerRef.current = scanner;
+    const scanner = scannerRef.current;
 
-    scanner.render(
-      async (decodedText) => {
-        const token = extractToken(decodedText);
-        setStatus("Memvalidasi QR...");
-        setError(null);
+    try {
+      await scanner.stop();
+    } catch {
+      // ignore if not running
+    }
 
-        const res = await fetch("/api/attendance", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ token }),
-        });
+    const config = {
+      fps: 10,
+      qrbox: { width: 280, height: 280 },
+      aspectRatio: 1.0,
+      disableFlip: false,
+      experimentalFeatures: { useBarCodeDetectorIfSupported: true },
+    };
 
-        if (!res.ok) {
-          const data = await res.json().catch(() => null);
-          setError(data?.error ?? "Gagal menyimpan absensi.");
-          setStatus("Coba scan ulang.");
-          return;
-        }
+    const onSuccess = async (decodedText: string) => {
+      if (isProcessingRef.current) return;
+      isProcessingRef.current = true;
+      const token = extractToken(decodedText);
+      setStatus("Memvalidasi QR...");
+      setError(null);
+      setIsScanning(false);
 
-        setStatus("Absensi berhasil disimpan.");
-        setIsScanning(false);
-        scanner.clear().catch(() => undefined);
-      },
-      () => {
-        // ignore scan errors to avoid noisy UI
+      await scanner.stop().catch(() => undefined);
+      scanner.clear();
+
+      const res = await fetch("/api/attendance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        setError(data?.error ?? "Gagal menyimpan absensi.");
+        setStatus("Coba scan ulang.");
+        isProcessingRef.current = false;
+        return;
       }
-    );
+
+      setStatus("Absensi berhasil disimpan.");
+    };
+
+    const onFailure = () => {
+      // ignore scan errors to avoid noisy UI
+    };
 
     setIsReady(true);
     setIsScanning(true);
-    setStatus("Kamera aktif. Arahkan ke QR.");
+    isProcessingRef.current = false;
+
+    const startCamera = async (constraints: MediaTrackConstraints) => {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        throw new Error("getUserMedia tidak didukung");
+      }
+      // Preflight permission for iOS Safari
+      const preflight = await navigator.mediaDevices.getUserMedia({
+        video: {
+          ...constraints,
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        },
+      });
+      preflight.getTracks().forEach((track) => track.stop());
+
+      const cameras = await Html5Qrcode.getCameras().catch(() => []);
+      if (Array.isArray(cameras) && cameras.length > 0) {
+        const backCamera =
+          cameras.find((cam) =>
+            /back|rear|environment/gi.test(cam.label)
+          ) ?? cameras[0];
+        await scanner.start(backCamera.id, config, onSuccess, onFailure);
+        return;
+      }
+
+      await scanner.start(constraints, config, onSuccess, onFailure);
+    };
 
     try {
-      await navigator.mediaDevices.getUserMedia({ video: true });
+      await startCamera({ facingMode: { ideal: "environment" } });
+      setStatus("Kamera aktif. Arahkan ke QR.");
     } catch {
-      setError(
-        "Akses kamera ditolak. Aktifkan izin kamera di browser lalu coba lagi."
-      );
-      setStatus("Izin kamera dibutuhkan untuk scan.");
-      setIsScanning(false);
+      try {
+        await startCamera({ facingMode: "user" });
+        setStatus("Kamera aktif. Arahkan ke QR.");
+      } catch {
+        setError(
+          "Akses kamera ditolak atau perangkat tidak mendukung kamera. Buka Settings > Safari > Camera > Allow, lalu muat ulang halaman."
+        );
+        setDebug(
+          "Jika tetap gagal: gunakan Safari, pastikan HTTPS, dan nonaktifkan Private Mode."
+        );
+        setStatus("Izin kamera dibutuhkan untuk scan.");
+        setIsScanning(false);
+      }
     }
   };
 
@@ -110,13 +164,15 @@ export default function ScanPage() {
             <button
               type="button"
               onClick={startScan}
-              disabled={isScanning}
-              className="inline-flex items-center justify-center rounded-full bg-brand-500 px-4 py-2 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(21,184,121,0.35)] transition hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-70"
+              className="inline-flex items-center justify-center rounded-full bg-brand-500 px-4 py-2 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(21,184,121,0.35)] transition hover:bg-brand-600"
             >
               {isReady ? "Scan Ulang" : "Mulai Scan"}
             </button>
           </div>
-          <div id="reader" className="rounded-2xl" />
+          <div
+            id="reader"
+            className="min-h-[240px] overflow-hidden rounded-2xl bg-white"
+          />
           <div
             className="mt-4 rounded-2xl border border-brand-100 bg-brand-50 px-4 py-3 text-sm text-brand-900"
             aria-live="polite"
@@ -124,10 +180,22 @@ export default function ScanPage() {
             {status}
           </div>
           {error && (
-            <div className="mt-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+            <div
+              className="mt-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"
+              role="alert"
+            >
               {error}
             </div>
           )}
+          {debug && (
+            <div className="mt-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-700">
+              {debug}
+            </div>
+          )}
+          <p className="mt-3 text-xs text-brand-900/60">
+            Pastikan memakai Safari dan koneksi HTTPS. Jika izin kamera tidak
+            muncul, matikan mode private lalu coba lagi.
+          </p>
         </div>
       </div>
     </div>

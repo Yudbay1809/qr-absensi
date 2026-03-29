@@ -33,9 +33,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Token tidak valid." }, { status: 400 });
   }
 
-  const qrSession = await prisma.qRSession.findUnique({
-    where: { token: parsed.data.token },
-  });
+  const [qrSession, shift] = await Promise.all([
+    prisma.qRSession.findUnique({
+      where: { token: parsed.data.token },
+    }),
+    getDefaultShift(),
+  ]);
 
   if (!qrSession) {
     return NextResponse.json({ error: "QR tidak ditemukan." }, { status: 404 });
@@ -46,7 +49,6 @@ export async function POST(req: Request) {
   }
 
   const scannedAt = new Date();
-  const shift = await getDefaultShift();
   let status = "on_time";
   if (shift) {
     const [lateHour, lateMinute] = shift.workStart.split(":").map(Number);
